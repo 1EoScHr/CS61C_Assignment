@@ -7,9 +7,9 @@
 ** AUTHOR:      Dan Garcia  -  University of California at Berkeley
 **              Copyright (C) Dan Garcia, 2020. All rights reserved.
 **				Justin Yokota - Starter Code
-**				YOUR NAME HERE
+**				Liu ZETONG	
 **
-** DATE:        2020-08-23
+** DATE:        2025-03-21
 **
 **************************************************************************/
 
@@ -21,13 +21,42 @@
 //Determines what color the cell at the given row/col should be. This should not affect Image, and should allocate space for a new Color.
 Color *evaluateOnePixel(Image *image, int row, int col)
 {
-	//YOUR CODE HERE
+	Color* hideColor = (Color*)malloc(sizeof(Color));
+	if(hideColor == NULL)
+	{
+		printf("malloc ERROR !!!\n");
+		exit(-1);
+	}
+
+	hideColor->R = hideColor->G = hideColor->B = (image->image[row][col].B & 1)? 255 : 0;
+	return hideColor;
 }
 
 //Given an image, creates a new image extracting the LSB of the B channel.
 Image *steganography(Image *image)
 {
-	//YOUR CODE HERE
+	Image* newimage = (Image*)malloc(sizeof(Image));
+	newimage->rows = image->rows;
+	newimage->cols = image->cols;
+
+	Color** allPixels = (Color**)malloc(newimage->rows * sizeof(Color*));
+	for(uint32_t i = 0; i < newimage->rows; i ++)
+	{
+		allPixels[i] = (Color*)malloc(newimage->cols * sizeof(Color));
+	}
+
+	for(uint32_t row = 0; row < newimage->rows; row ++)
+	{
+		for(uint32_t col = 0; col < newimage->cols; col ++)
+		{
+			Color* handle = evaluateOnePixel(image, row, col);
+			allPixels[row][col] = *handle;
+			free(handle);	// 及时销毁，感觉这里值传递即可，传来指针的话就要解引用完就销毁。
+		}
+	}
+
+	newimage->image = allPixels;
+	return newimage;
 }
 
 /*
@@ -45,5 +74,15 @@ Make sure to free all memory before returning!
 */
 int main(int argc, char **argv)
 {
-	//YOUR CODE HERE
+	Image *before, *after;
+	char* filename = argv[1];
+
+	before = readData(filename);
+	after = steganography(before);
+	writeData(after);
+	
+	freeImage(before);
+	freeImage(after);
+	
+	return 0;
 }
